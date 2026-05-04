@@ -1,7 +1,18 @@
-import type { NextConfig } from "next";
+const nextConfig = {
+  allowedDevOrigins: ['192.168.0.39'],
 
-const nextConfig: NextConfig = {
-  /* config options here */
-};
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**', // ← Permite cualquier dominio HTTPS
+      },
+      {
+        protocol: 'http',
+        hostname: '**', // ← Permite cualquier dominio HTTP (menos seguro)
+      },
+    ],
+  },
+}
 
 export default nextConfig;
