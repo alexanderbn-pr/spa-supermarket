@@ -18,7 +18,7 @@ export default function TextareaField({ field, register, errors }: TextareaField
     <div className="flex flex-col gap-2">
       <label className="text-sm font-medium text-[#1d1d1f]">{field.label}</label>
       <textarea
-        {...register(field.name as any)}
+        {...register(field.name)}
         placeholder={field.placeholder}
         rows={4}
         className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-[#1d1d1f] placeholder:text-gray-400 focus:border-[#0071e3] focus:outline-none focus:ring-2 focus:ring-[#0071e3]/20"

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import { Control, FieldErrors, Controller } from 'react-hook-form';
 import { RecipeFormData } from '@/app/recipe/new/config/schema';
 
@@ -8,18 +9,17 @@ interface Option {
   label: string;
 }
 
-// Tipo para los ingredientes seleccionados (coincide con ingredient_ids en el schema)
 interface IngredientWithQuantity {
   id: number;
   quantity: string;
 }
 
-// Definir el tipo de field compatible con GenericForm pero específico para multiselect
 interface MultiselectFieldConfig {
   name: keyof RecipeFormData;
   label: string;
   mode: 'multiselect';
   options?: Option[];
+  onCustomCreate?: (value: string) => Promise<{ value: number; label: string }>;
 }
 
 interface MultiselectFieldProps {
@@ -30,9 +30,25 @@ interface MultiselectFieldProps {
 
 export default function MultiselectField({ field, control, errors }: MultiselectFieldProps) {
   const options = field.options ?? [];
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const error = errors[field.name];
   const errorMessage = error && 'message' in error ? error.message : undefined;
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="flex flex-col gap-2">
@@ -43,42 +59,54 @@ export default function MultiselectField({ field, control, errors }: Multiselect
         name={field.name}
         control={control}
         render={({ field: controllerField }) => {
-          // Estado derivado del formulario
           const selectedValue = (controllerField.value ?? []) as IngredientWithQuantity[];
-
-          // Cálculos simples (no necesitan useMemo porque son O(n))
           const selectedIds = selectedValue.map((i) => i.id);
-          const availableOptionsFiltered = options.filter(
-            (option) => !selectedIds.includes(option.value)
+
+          // Filter options based on search query
+          const filteredOptions = options.filter(
+            (option) =>
+              !selectedIds.includes(option.value) &&
+              option.label.toLowerCase().includes(searchQuery.toLowerCase())
           );
-          const isAllSelected = options.length > 0 && selectedIds.length === options.length;
 
-          // Función para sincronizar con el formulario
-          const syncWithForm = (ingredients: IngredientWithQuantity[]) => {
-            controllerField.onChange(ingredients);
-          };
-
-          // Handler para eliminar ingrediente
           const handleRemoveIngredient = (id: number) => {
             const updated = selectedValue.filter((i) => i.id !== id);
-            syncWithForm(updated);
+            controllerField.onChange(updated);
           };
 
-          // Handler para cambiar cantidad
           const handleQuantityChange = (id: number, quantity: string) => {
             const updated = selectedValue.map((i) =>
               i.id === id ? { ...i, quantity } : i
             );
-            syncWithForm(updated);
+            controllerField.onChange(updated);
           };
 
-          // Handler para agregar ingrediente
           const handleAddIngredient = (optionValue: number) => {
-            const newSelection: IngredientWithQuantity[] = [
+            controllerField.onChange([
               ...selectedValue,
-              { id: optionValue, quantity: '' },
-            ];
-            syncWithForm(newSelection);
+              { id: optionValue, quantity: '1' },
+            ]);
+            setSearchQuery('');
+            setIsDropdownOpen(false);
+          };
+
+          const handleCustomCreate = async () => {
+            if (!searchQuery.trim() || !field.onCustomCreate) return;
+
+            setIsCreating(true);
+            try {
+              const newOption = await field.onCustomCreate(searchQuery.trim());
+              controllerField.onChange([
+                ...selectedValue,
+                { id: newOption.value, quantity: '1' },
+              ]);
+              setSearchQuery('');
+              setIsDropdownOpen(false);
+            } catch (err) {
+              console.error('Error creating ingredient:', err);
+            } finally {
+              setIsCreating(false);
+            }
           };
 
           return (
@@ -123,23 +151,72 @@ export default function MultiselectField({ field, control, errors }: Multiselect
                 </div>
               )}
 
-              {/* Available options to select */}
-              <div className="flex flex-wrap gap-2 rounded-xl border border-gray-200 bg-white p-3">
-                {availableOptionsFiltered.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => handleAddIngredient(option.value)}
-                    className="flex cursor-pointer items-center gap-2 rounded-full border border-gray-200 px-3 py-1.5 text-sm text-gray-500 transition-colors hover:border-[#0071e3] hover:text-[#0071e3]"
-                  >
-                    <span>{option.label}</span>
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                  </button>
-                ))}
-                {isAllSelected && (
-                  <span className="text-sm text-gray-400">Todos los ingredientes seleccionados</span>
+              {/* Searchable dropdown */}
+              <div ref={dropdownRef} className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setIsDropdownOpen(true);
+                  }}
+                  onFocus={() => setIsDropdownOpen(true)}
+                  placeholder="Buscar ingrediente..."
+                  className="w-full h-11 rounded-xl border border-gray-200 px-4 text-sm
+                    focus:border-[#0071e3] focus:outline-none focus:ring-2 focus:ring-[#0071e3]/20
+                    placeholder:text-gray-400"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && searchQuery.trim()) {
+                      e.preventDefault();
+                      if (field.onCustomCreate && filteredOptions.length === 0) {
+                        handleCustomCreate();
+                      } else if (filteredOptions.length > 0) {
+                        handleAddIngredient(filteredOptions[0].value);
+                      }
+                    }
+                  }}
+                />
+
+                {/* Dropdown options */}
+                {isDropdownOpen && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                    {filteredOptions.length > 0 ? (
+                      filteredOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => handleAddIngredient(option.value)}
+                          className="w-full px-4 py-2 text-left text-sm text-[#1d1d1f] hover:bg-gray-50 transition-colors flex items-center justify-between"
+                        >
+                          <span>{option.label}</span>
+                          <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                        </button>
+                      ))
+                    ) : (
+                      field.onCustomCreate && searchQuery.trim() && (
+                        <button
+                          type="button"
+                          onClick={handleCustomCreate}
+                          disabled={isCreating}
+                          className="w-full px-4 py-2 text-left text-sm text-[#0071e3] hover:bg-gray-50 transition-colors flex items-center gap-2"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                          <span>
+                            {isCreating ? 'Creando...' : `Crear "${searchQuery.trim()}"`}
+                          </span>
+                        </button>
+                      )
+                    )}
+                    {filteredOptions.length === 0 && (!field.onCustomCreate || !searchQuery.trim()) && (
+                      <div className="px-4 py-2 text-sm text-gray-400">
+                        {searchQuery.trim() ? 'Sin resultados' : 'Escribe para buscar'}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

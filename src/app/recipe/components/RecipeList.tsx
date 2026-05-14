@@ -1,4 +1,4 @@
-import { fetchRecipes } from '@/api/get-recipes';
+import { fetchRecipes } from '@/api/recipe/get-recipes';
 import { RecipeListClient } from '@/components/RecipeList/RecipeListClient';
 
 // Server Component - carga datos en el servidor

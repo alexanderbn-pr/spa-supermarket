@@ -8,16 +8,36 @@ import { useRouter } from 'next/navigation';
 import { recipeSchema, RecipeFormData } from '../config/schema';
 import { recipeFormConfig } from '../config/form.config';
 import GenericForm from '@/components/ComponentsForm/GenericForm';
-import { createRecipe } from '@/api/create-recipe';
+import { createRecipe } from '@/api/recipe/create-recipe';
 import { useDictionaries } from '@/hooks/useDictionaries';
 import { CreateRecipeFormSkeleton } from '@/components/Skeleton/FormSkeleton';
+import {
+  createType,
+  createDifficulty,
+  createMealType,
+  createHealthyLevel,
+  createIngredient,
+} from '@/api/recipe/create-dictionary';
 
 export default function CreateRecipeForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { types, difficulties, mealTypes, healthyLevels, ingredients, isLoading, error: dictError } = useDictionaries();
+  const {
+    types,
+    difficulties,
+    mealTypes,
+    healthyLevels,
+    ingredients,
+    isLoading,
+    error: dictError,
+    refetchTypes,
+    refetchDifficulties,
+    refetchMealTypes,
+    refetchHealthyLevels,
+    refetchIngredients,
+  } = useDictionaries();
 
   const {
     register,
@@ -33,29 +53,69 @@ export default function CreateRecipeForm() {
       name: '',
       description: '',
       url: '',
-      type_id: '',
-      difficulty_id: '',
-      meal_type_id: '',
-      healthy_level_id: '',
+      type_id: 0,
+      difficulty_id: 0,
+      meal_type_id: 0,
+      healthy_level_id: 0,
       ingredient_ids: [],
     },
   });
 
   const fields = recipeFormConfig.map((field) => {
     if (field.name === 'type_id') {
-      return { ...field, options: types.map((t) => ({ value: t.id, label: t.name })) };
+      return {
+        ...field,
+        options: types.map((t) => ({ value: t.id, label: t.name })),
+        onCreateOption: async (value: string) => {
+          const newType = await createType(value);
+          await refetchTypes();
+          return { value: newType.id, label: newType.name };
+        },
+      };
     }
     if (field.name === 'difficulty_id') {
-      return { ...field, options: difficulties.map((d) => ({ value: d.id, label: d.name })) };
+      return {
+        ...field,
+        options: difficulties.map((d) => ({ value: d.id, label: d.name })),
+        onCreateOption: async (value: string) => {
+          const newDifficulty = await createDifficulty(value);
+          await refetchDifficulties();
+          return { value: newDifficulty.id, label: newDifficulty.name };
+        },
+      };
     }
     if (field.name === 'meal_type_id') {
-      return { ...field, options: mealTypes.map((m) => ({ value: m.id, label: m.name })) };
+      return {
+        ...field,
+        options: mealTypes.map((m) => ({ value: m.id, label: m.name })),
+        onCreateOption: async (value: string) => {
+          const newMealType = await createMealType(value);
+          await refetchMealTypes();
+          return { value: newMealType.id, label: newMealType.name };
+        },
+      };
     }
     if (field.name === 'healthy_level_id') {
-      return { ...field, options: healthyLevels.map((h) => ({ value: h.id, label: h.name })) };
+      return {
+        ...field,
+        options: healthyLevels.map((h) => ({ value: h.id, label: h.name })),
+        onCreateOption: async (value: string) => {
+          const newHealthyLevel = await createHealthyLevel(value);
+          await refetchHealthyLevels();
+          return { value: newHealthyLevel.id, label: newHealthyLevel.name };
+        },
+      };
     }
     if (field.name === 'ingredient_ids') {
-      return { ...field, options: ingredients.map((i) => ({ value: i.id, label: i.name })) };
+      return {
+        ...field,
+        options: ingredients.map((i) => ({ value: i.id, label: i.name })),
+        onCustomCreate: async (value: string) => {
+          const newIngredient = await createIngredient(value);
+          await refetchIngredients();
+          return { value: newIngredient.id, label: newIngredient.name };
+        },
+      };
     }
     return field;
   });

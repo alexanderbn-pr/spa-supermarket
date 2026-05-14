@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { BaseLookup } from '@/types/recipes.types';
 import {
   fetchTypes,
@@ -6,7 +6,7 @@ import {
   fetchMealTypes,
   fetchHealthyLevels,
   fetchIngredients,
-} from '@/api/get-dictionaries';
+} from '@/api/recipe/get-dictionaries';
 
 export interface DictionaryData {
   types: BaseLookup[];
@@ -31,10 +31,12 @@ export function useDictionaries() {
 
   const requestIdRef = useRef(0);
 
-  const loadData = async () => {
+  const loadData = async (showLoading = true) => {
     const requestId = ++requestIdRef.current;
 
-    setData(prev => ({ ...prev, isLoading: true, error: null }));
+    if (showLoading) {
+      setData(prev => ({ ...prev, isLoading: true, error: null }));
+    }
 
     try {
       const [
@@ -60,7 +62,7 @@ export function useDictionaries() {
         mealTypes,
         healthyLevels,
         ingredients,
-        isLoading: false,
+        isLoading: showLoading ? false : data.isLoading, // preserve loading if was false
         error: null,
       });
     } catch (err) {
@@ -77,12 +79,46 @@ export function useDictionaries() {
     }
   };
 
+  // Full refetch (shows loading)
+  const refetch = useCallback(() => loadData(true), []);
+  
+  // Individual refetch functions - fetch only specific dictionary
+  const refetchTypes = useCallback(async () => {
+    const types = await fetchTypes();
+    setData(prev => ({ ...prev, types }));
+  }, []);
+  
+  const refetchDifficulties = useCallback(async () => {
+    const difficulties = await fetchDifficulties();
+    setData(prev => ({ ...prev, difficulties }));
+  }, []);
+  
+  const refetchMealTypes = useCallback(async () => {
+    const mealTypes = await fetchMealTypes();
+    setData(prev => ({ ...prev, mealTypes }));
+  }, []);
+  
+  const refetchHealthyLevels = useCallback(async () => {
+    const healthyLevels = await fetchHealthyLevels();
+    setData(prev => ({ ...prev, healthyLevels }));
+  }, []);
+  
+  const refetchIngredients = useCallback(async () => {
+    const ingredients = await fetchIngredients();
+    setData(prev => ({ ...prev, ingredients }));
+  }, []);
+
   useEffect(() => {
-    loadData();
+    loadData(true);
   }, []);
 
   return {
     ...data,
-    refetch: loadData,
+    refetch,
+    refetchTypes,
+    refetchDifficulties,
+    refetchMealTypes,
+    refetchHealthyLevels,
+    refetchIngredients,
   };
 }

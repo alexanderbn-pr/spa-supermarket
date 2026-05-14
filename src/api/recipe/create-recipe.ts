@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
-import { RecipeFormData } from '../app/recipe/new/config/schema';
+import { RecipeFormData } from '../../app/recipe/new/config/schema';
 
 export const createRecipe = async (data: RecipeFormData) => {
   console.log('Creating recipe with data:', data);

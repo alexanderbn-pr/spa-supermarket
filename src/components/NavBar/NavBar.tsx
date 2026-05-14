@@ -9,8 +9,8 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { href: '/recipe', label: 'Recetas' },
-  { href: '/menu', label: 'Menú semanal' },
-  { href: '/shopping-list', label: 'Lista de la compra' },
+  { href: '/menu', label: 'Menú' },
+  { href: '/shopping-list', label: 'Compra' },
 ];
 
 export const NavBar = () => {

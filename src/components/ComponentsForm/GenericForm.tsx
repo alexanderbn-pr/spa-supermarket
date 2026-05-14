@@ -6,19 +6,35 @@ import InputField from './InputField';
 import TextareaField from './TextareaField';
 import SelectField from './SelectField';
 import MultiselectField from './MultiselectField';
+import ComboboxField from './ComboboxField';
 
 export interface FromField {
   name: keyof RecipeFormData;
   label: string;
-  mode: 'input' | 'select' | 'multiselect' | 'textarea';
+  mode: 'input' | 'select' | 'multiselect' | 'textarea' | 'combobox';
   inputType?: 'text' | 'url' | 'email' | 'password' | 'number';
   placeholder?: string;
   options?: { value: number; label: string }[];
+  onCreateOption?: (value: string) => Promise<{ value: number; label: string }>;
+  onCustomCreate?: (value: string) => Promise<{ value: number; label: string }>;
 }
 
-// Type guard para detectar campos de tipo multiselect
-function isMultiselectField(field: FromField): field is FromField & { mode: 'multiselect'; options: NonNullable<FromField['options']> } {
-  return field.mode === 'multiselect' && Array.isArray(field.options);
+export interface ComboboxFieldType extends FromField {
+  mode: 'combobox';
+}
+
+// Type guard para detectar campos de tipo combobox
+function isComboboxField(field: FromField): field is ComboboxFieldType {
+  return field.mode === 'combobox';
+}
+
+export interface MultiselectFieldType extends FromField {
+  mode: 'multiselect';
+  onCustomCreate?: (value: string) => Promise<{ value: number; label: string }>;
+}
+
+function isMultiselectField(field: FromField): field is MultiselectFieldType {
+  return field.mode === 'multiselect';
 }
 
 interface GenericFormProps {
@@ -66,18 +82,26 @@ export default function GenericForm({
               />
             );
           case 'multiselect':
-            // Solo pasar el field si tiene opciones (type guard)
-            if (isMultiselectField(field)) {
-              return (
-                <MultiselectField
-                  key={String(field.name)}
-                  field={field}
-                  control={control}
-                  errors={errors}
-                />
-              );
-            }
-            return null;
+            if (!isMultiselectField(field)) return null;
+            return (
+              <MultiselectField
+                key={String(field.name)}
+                field={field}
+                control={control}
+                errors={errors}
+              />
+            );
+          case 'combobox':
+            if (!isComboboxField(field)) return null;
+            return (
+              <ComboboxField
+                key={String(field.name)}
+                field={field}
+                control={control}
+                errors={errors}
+                onCreateOption={field.onCreateOption}
+              />
+            );
           default:
             return null;
         }
