@@ -48,7 +48,7 @@ export default async function MenuPage() {
       <h2 className="mb-8 text-[40px] font-semibold text-[#1d1d1f]">
         Menú semanal
       </h2>
-      <div className="w-full max-w-sm">
+      <div className="w-full">
         <WeeklyCalendar initialRecipes={recipes} initialMenu={initialMenu} />
       </div>
     </div>
