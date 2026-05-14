@@ -4,15 +4,17 @@
 /node_modules
 /.pnp
 .pnp.*
+.agents/*
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-
+openspec/*
 # testing
 /coverage
-
+*.md
+skills-lock.json
 # next.js
 /.next/
 /out/
