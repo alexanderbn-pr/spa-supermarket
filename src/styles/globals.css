@@ -29,8 +29,21 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
+/* Apply transitions only to specific properties, not all elements */
+button, a, input, select, textarea {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* iOS tap highlight and touch optimization */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Ensure animated elements don't block clicks */
+.animate-fadeSlideUp {
+  animation: fadeSlideUp 400ms ease-out forwards;
+  pointer-events: auto !important;
 }
 
 ::-webkit-scrollbar {
