@@ -22,8 +22,6 @@ export default function RecipeBottomSheet({
   );
 
   // Reset search when sheet closes
-  // Resetting search when sheet closes is a UX pattern - user expects cleared search on reopen
-   
   useEffect(() => {
     if (!isOpen) {
       setSearchQuery('');

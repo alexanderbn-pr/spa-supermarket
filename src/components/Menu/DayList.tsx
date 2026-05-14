@@ -66,7 +66,7 @@ export default function DayList({
 
   return (
     <>
-      <div className="flex flex-col w-full max-w-md mx-auto ">
+      <div className="grid gap-4 w-full" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
         {weekMenu.map((dayMenu, index) => {
           const day = dayMenu.day;
           const dayLabel = dayMenu.dayLabel;

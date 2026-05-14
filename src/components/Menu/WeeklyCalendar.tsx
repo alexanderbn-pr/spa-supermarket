@@ -119,7 +119,7 @@ export default function WeeklyCalendar({
   }
 
   return (
-    <div className="max-w-sm sm:max-w-2xl sm:px-6 md:max-w-4xl lg:max-w-6xl">
+    <div className="w-full">
       {/* Clear menu button */}
       <button
         onClick={() => setShowConfirmClear(true)}

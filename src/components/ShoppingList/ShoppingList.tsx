@@ -30,7 +30,7 @@ export default function ShoppingList() {
   return (
     <div className="w-full max-w-md mx-auto">
       <form onSubmit={handleAddSubmit} className="mb-6">
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <label htmlFor="ingredient-input" className="sr-only">
             Añadir ingrediente
           </label>
@@ -40,12 +40,12 @@ export default function ShoppingList() {
             value={inputValue}
             onChange={(e) => handleInputChange(e.target.value)}
             placeholder="Añadir ingrediente..."
-            className="flex-1 px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-emerald-500 focus:outline-none transition-colors text-gray-800 placeholder-gray-400"
+            className="flex-1 px-3 py-3 rounded-lg border-2 border-gray-200 focus:border-emerald-500 focus:outline-none transition-colors text-gray-800 placeholder-gray-400"
           />
           <button
             type="submit"
             disabled={!inputValue.trim()}
-            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-3 bg-emerald-600 w-full sm:w-auto hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Añadir
           </button>
