@@ -43,14 +43,15 @@ export default function RecipeBottomSheet({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 animate-fadeIn"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[99]"
         onClick={onClose}
+        onTouchEnd={onClose}
         aria-hidden="true"
       />
 
       {/* Sheet container */}
       <div
-        className="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-[24px] animate-slideUpSheet max-h-[85vh] flex flex-col"
+        className="fixed inset-x-0 bottom-0 z-[100] bg-white rounded-t-[24px] animate-slideUpSheet max-h-[85vh] flex flex-col overflow-hidden"
         role="dialog"
         aria-modal="true"
         aria-label={`Seleccionar ${mealLabel} para ${dayLabel}`}
