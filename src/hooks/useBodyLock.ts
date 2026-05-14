@@ -1,34 +1,35 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 
 export function useBodyLock(isLocked: boolean) {
-  const lock = useCallback(() => {
-    if (typeof document !== 'undefined') {
-      // Use inline styles for reliability
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.height = '100%';
-    }
-  }, []);
-
-  const unlock = useCallback(() => {
-    if (typeof document !== 'undefined') {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
-    }
-  }, []);
+  const scrollYRef = useRef(0);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     if (isLocked) {
-      lock();
+      // Save current scroll position
+      scrollYRef.current = window.scrollY;
+
+      // Use padding-top approach - add padding equal to scroll height to prevent jump
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'relative';
     } else {
-      unlock();
+      // Restore styles
+      document.body.style.paddingRight = '';
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+
+      // Restore scroll position
+      window.scrollTo(0, scrollYRef.current);
     }
 
     return () => {
-      unlock();
+      // Cleanup
+      document.body.style.paddingRight = '';
+      document.body.style.overflow = '';
+      document.body.style.position = '';
     };
-  }, [isLocked, lock, unlock]);
+  }, [isLocked]);
 }

@@ -63,16 +63,13 @@ export function useShoppingList() {
   }, []);
 
   const removeItem = useCallback(async (id: number) => {
+    // Optimistic update: remove from UI immediately
+    setItems((prev) => prev.filter((item) => item.id !== id));
+
     // If it's a real Supabase item (id > 0), delete from DB
     if (id > 0) {
       await deleteFromCart(id);
-      // Force refetch to ensure UI updates
-      setTimeout(async () => {
-        const freshItems = await fetchCartList();
-        setItems(freshItems);
-      }, 100);
     }
-    setItems((prev) => prev.filter((item) => item.id !== id));
   }, []);
 
   const incrementQuantity = useCallback(async (id: number) => {

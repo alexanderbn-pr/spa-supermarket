@@ -40,10 +40,22 @@ export default async function RecipePage({ searchParams }: PageProps) {
         </div>
         <Link
           href="/recipe/new"
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-all hover:bg-emerald-600 hover:shadow-lg active:scale-95"
+          className="flex h-12 w-12 aspect-square min-w-[48px] min-h-[48px] items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-all hover:bg-emerald-600 hover:shadow-lg active:scale-95"
           aria-label="Crear nueva receta"
         >
-          +
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
         </Link>
       </section>
 
