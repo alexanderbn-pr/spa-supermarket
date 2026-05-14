@@ -1,5 +1,3 @@
-
-
 import { Recipe, RecipeRow } from '@/types/recipes.types'
 
 export const mapRecipeRowToRecipe = (r: RecipeRow): Recipe => ({
@@ -11,5 +9,6 @@ export const mapRecipeRowToRecipe = (r: RecipeRow): Recipe => ({
   type: r.type,
   difficulty:  r.difficulty,
   mealType:  r.meal_type,
-  healthyLevel: r.healthy_level
+  healthyLevel: r.healthy_level,
+  favourite: r.favourite
 })

@@ -8,6 +8,7 @@ export interface Recipe {
   difficulty: Difficulty;
   mealType: MealType;
   healthyLevel: HealthyLevel;
+  favourite?: boolean;
 }
 
 export interface BaseLookup {
@@ -38,4 +39,14 @@ export interface RecipeRow {
   difficulty: Difficulty;
   meal_type: MealType;
   healthy_level: HealthyLevel;
+  favourite?: boolean;
+}
+
+export interface RecipeFilters {
+  search?: string;
+  types?: number[];
+  difficulties?: number[];
+  mealTypes?: number[];
+  healthyLevels?: number[];
+  favourite?: boolean;
 }
