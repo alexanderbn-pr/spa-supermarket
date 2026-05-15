@@ -11,7 +11,7 @@ export const recipeSchema = z.object({
   description: z.string().min(10, 'La descripción debe tener al menos 10 caracteres'),
   url: z.string().url('Debe ser una URL válida').or(z.string().length(0)),
   type_id: z.number().min(1, 'Selecciona un tipo'),
-  difficulty_id: z.number().min(1, 'Selecciona una dificultad'),
+  difficulty_id: z.number().min(1, 'Selecciona un tiempo de elaboración'),
   meal_type_id: z.number().min(1, 'Selecciona un tipo de comida'),
   healthy_level_id: z.number().min(1, 'Selecciona un nivel saludable'),
   ingredient_ids: z.array(ingredientSchema).min(1, 'Selecciona al menos un ingrediente'),

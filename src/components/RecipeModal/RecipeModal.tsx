@@ -1,17 +1,23 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Recipe } from '@/types/recipes.types';
+import { deleteRecipe } from '@/api/recipe/create-recipe';
 
 interface RecipeModalProps {
   recipe: Recipe;
   isOpen: boolean;
   onClose: () => void;
+  onDelete?: () => void;
 }
 
-const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, isOpen, onClose }) => {
+const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, isOpen, onClose, onDelete }) => {
+  const router = useRouter();
   const overlayRef = useRef<HTMLDivElement>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -33,6 +39,26 @@ const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, isOpen, onClose }) =>
     if (e.target === overlayRef.current) onClose();
   };
 
+  const handleEdit = () => {
+    router.push(`/recipe/new?id=${recipe.id}`);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      setIsDeleting(true);
+      await deleteRecipe(recipe.id);
+      setShowDeleteConfirm(false);
+      onClose();
+      if (onDelete) {
+        onDelete();
+      }
+    } catch (err) {
+      console.error('Error deleting recipe:', err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -45,15 +71,36 @@ const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, isOpen, onClose }) =>
       aria-labelledby="modal-title"
     >
       <div className="relative max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-2xl bg-[#f5f5f7] mx-4 animate-slideUp">
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#1d1d1f] shadow-md transition-all hover:bg-[#ededf2] hover:scale-105 active:scale-95"
-          aria-label="Cerrar modal"
-        >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        {/* Header Actions */}
+        <div className="absolute right-4 top-4 z-10 flex gap-2">
+          <button
+            onClick={handleEdit}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#1d1d1f] shadow-md transition-all hover:bg-[#ededf2] hover:scale-105 active:scale-95"
+            aria-label="Editar receta"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-red-500 shadow-md transition-all hover:bg-red-50 hover:scale-105 active:scale-95"
+            aria-label="Borrar receta"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+          <button
+            onClick={onClose}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#1d1d1f] shadow-md transition-all hover:bg-[#ededf2] hover:scale-105 active:scale-95"
+            aria-label="Cerrar modal"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
         <div className="relative aspect-video w-full overflow-hidden">
           <Image
@@ -83,7 +130,7 @@ const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, isOpen, onClose }) =>
               {recipe.type && (
                 <div className="flex flex-col gap-1 rounded-lg bg-blue-50 p-3">
                   <span className="text-xs font-medium uppercase tracking-wider text-blue-600">
-                    Tipo de plato
+                    Momento del día
                   </span>
                   <span className="font-semibold text-blue-900">
                     {recipe.type.name}
@@ -93,7 +140,7 @@ const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, isOpen, onClose }) =>
               {recipe.difficulty && (
                 <div className="flex flex-col gap-1 rounded-lg bg-emerald-50 p-3">
                   <span className="text-xs font-medium uppercase tracking-wider text-emerald-600">
-                    Dificultad
+                    Tiempo de elaboración
                   </span>
                   <span className="font-semibold text-emerald-900">
                     {recipe.difficulty.name}
@@ -103,7 +150,7 @@ const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, isOpen, onClose }) =>
               {recipe.mealType && (
                 <div className="flex flex-col gap-1 rounded-lg bg-amber-50 p-3">
                   <span className="text-xs font-medium uppercase tracking-wider text-amber-600">
-                    Momento del día
+                    Tipo de plato
                   </span>
                   <span className="font-semibold text-amber-900">
                     {recipe.mealType.name}
@@ -158,11 +205,6 @@ const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, isOpen, onClose }) =>
                       </span>
                       <div className="flex flex-col">
                         <span className="font-medium text-[#1d1d1f]">{ingredient.name}</span>
-                        {ingredient.description && (
-                          <span className="text-sm text-gray-500">
-                            {ingredient.description}
-                          </span>
-                        )}
                       </div>
                     </div>
                     <span className="shrink-0 rounded-md bg-amber-100 px-2 py-1 text-sm font-medium text-amber-800">
@@ -175,6 +217,56 @@ const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, isOpen, onClose }) =>
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Bottom Sheet */}
+      {showDeleteConfirm && (
+        <div
+          className="fixed inset-0 z-[60] flex items-end justify-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-dialog-title"
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setShowDeleteConfirm(false)}
+          />
+
+          {/* Bottom Sheet */}
+          <div className="relative w-full max-w-md bg-white rounded-t-3xl p-6 animate-slideUpSheet">
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                <svg className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 id="delete-dialog-title" className="mb-2 text-xl font-semibold text-[#1d1d1f]">
+                ¿Borrar la receta?
+              </h3>
+              <p className="mb-6 text-gray-500">
+                Se eliminará &quot;{recipe.name}&quot; de forma permanente.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 rounded-xl border border-gray-200 px-4 py-3 font-medium text-[#1d1d1f] transition-colors hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteConfirm}
+                  disabled={isDeleting}
+                  className="flex-1 rounded-xl bg-red-500 px-4 py-3 font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+                >
+                  {isDeleting ? 'Borrando...' : 'Borrar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

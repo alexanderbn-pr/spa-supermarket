@@ -17,6 +17,7 @@ export interface FromField {
   options?: { value: number; label: string }[];
   onCreateOption?: (value: string) => Promise<{ value: number; label: string }>;
   onCustomCreate?: (value: string) => Promise<{ value: number; label: string }>;
+  onEditOption?: (id: number, value: string) => Promise<{ value: number; label: string }>;
 }
 
 export interface ComboboxFieldType extends FromField {
@@ -100,6 +101,7 @@ export default function GenericForm({
                 control={control}
                 errors={errors}
                 onCreateOption={field.onCreateOption}
+                onEditOption={field.onEditOption}
               />
             );
           default:

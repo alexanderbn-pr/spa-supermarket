@@ -26,9 +26,9 @@ export const recipeFormConfig: FromField[] = [
   },
   {
     name: 'difficulty_id',
-    label: 'Dificultad',
+    label: 'Tiempo de elaboración',
     mode: 'combobox',
-    placeholder: 'Escribe o selecciona una dificultad',
+    placeholder: 'Escribe o selecciona un tiempo de elaboración',
   },
   {
     name: 'meal_type_id',
