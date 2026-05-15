@@ -44,7 +44,7 @@ describe('RecipeModal', () => {
     render(<RecipeModal recipe={mockRecipe} isOpen={true} onClose={() => {}} />);
 
     expect(screen.getByText('Tipo de plato')).toBeInTheDocument();
-    expect(screen.getByText('Dificultad')).toBeInTheDocument();
+    expect(screen.getByText('Tiempo de elaboración')).toBeInTheDocument();
     expect(screen.getByText('Momento del día')).toBeInTheDocument();
     expect(screen.getByText('Nivel saludable')).toBeInTheDocument();
   });

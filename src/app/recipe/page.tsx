@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import RecipeList from './components/RecipeList';
-import CardSkeleton from '@/components/Card/CardSkeleton';
+import RecipeListSkeleton from '@/components/RecipeList/RecipeListSkeleton';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { fetchTypes, fetchDifficulties, fetchMealTypes, fetchHealthyLevels } from '@/api/recipe/get-dictionaries';
@@ -66,13 +66,7 @@ export default async function RecipePage({ searchParams }: PageProps) {
       </Suspense>
 
       <Suspense
-        fallback={
-          <div className="grid grid-cols-3 gap-6 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6" role="status" aria-label="Cargando recetas...">
-            {[...Array(8)].map((_, i) => (
-              <CardSkeleton key={i} />
-            ))}
-          </div>
-        }
+        fallback={<RecipeListSkeleton count={8} />}
       >
         <RecipeList searchParams={searchParams} />
       </Suspense>

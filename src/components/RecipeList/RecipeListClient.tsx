@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Recipe } from '@/types/recipes.types';
 import Card from '@/components/Card/Card';
@@ -15,8 +15,15 @@ interface RecipeListClientProps {
 export function RecipeListClient({ recipes }: RecipeListClientProps) {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [updatingId, setUpdatingId] = useState<number | null>(null);
   const router = useRouter();
+
+  // Local state for optimistic favorite updates
+  const [localRecipes, setLocalRecipes] = useState<Recipe[]>(recipes);
+
+  // Sync local state when recipes prop changes (from server)
+  useEffect(() => {
+    setLocalRecipes(recipes);
+  }, [recipes]);
 
   const handleCardClick = useCallback((recipe: Recipe) => {
     setSelectedRecipe(recipe);
@@ -28,37 +35,45 @@ export function RecipeListClient({ recipes }: RecipeListClientProps) {
     setTimeout(() => setSelectedRecipe(null), 300);
   }, []);
 
+  // Handle recipe deletion - remove from local state
+  const handleDeleteRecipe = useCallback(() => {
+    if (selectedRecipe) {
+      setLocalRecipes((prev) => prev.filter((r) => r.id !== selectedRecipe.id));
+    }
+  }, [selectedRecipe]);
+
   // Optimistic update - update local state immediately
   const handleFavorite = useCallback(
     async (recipeId: number, e: React.MouseEvent) => {
       // Stop propagation so it doesn't trigger card click
       e.stopPropagation();
-      
-      // Don't update if already updating
-      if (updatingId !== null) return;
-      
-      const recipe = recipes.find((r) => r.id === recipeId);
+
+      const recipe = localRecipes.find((r) => r.id === recipeId);
       if (!recipe) return;
 
       const newFavourite = !recipe.favourite;
-      
+
       // Optimistic update: update local state immediately
-      setUpdatingId(recipeId);
-      
+      setLocalRecipes((prev) =>
+        prev.map((r) =>
+          r.id === recipeId ? { ...r, favourite: newFavourite } : r
+        )
+      );
+
       try {
         const result = await updateRecipeFavourite(recipeId, newFavourite);
 
-        if (result.success) {
-          // Refresh the page data after successful update
-          router.refresh();
-        } else {
+        if (!result.success) {
           console.error('Failed to update favorite:', result.error);
+          // Rollback on error by refreshing
+          router.refresh();
         }
-      } finally {
-        setUpdatingId(null);
+      } catch {
+        // Rollback on error by refreshing
+        router.refresh();
       }
     },
-    [recipes, router, updatingId]
+    [localRecipes, router]
   );
 
   // Memoize handlers passed to children to prevent unnecessary re-renders
@@ -66,7 +81,7 @@ export function RecipeListClient({ recipes }: RecipeListClientProps) {
   const memoizedHandleCloseModal = useMemo(() => handleCloseModal, [handleCloseModal]);
   const memoizedHandleFavorite = useMemo(() => handleFavorite, [handleFavorite]);
 
-  if (recipes.length === 0) {
+  if (localRecipes.length === 0) {
     return <EmptyState />;
   }
 
@@ -74,7 +89,7 @@ export function RecipeListClient({ recipes }: RecipeListClientProps) {
     <>
       <div className="relative">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          {recipes.map((recipe) => (
+          {localRecipes.map((recipe) => (
             <div
               role="button"
               tabIndex={0}
@@ -109,6 +124,7 @@ export function RecipeListClient({ recipes }: RecipeListClientProps) {
           recipe={selectedRecipe}
           isOpen={isModalOpen}
           onClose={memoizedHandleCloseModal}
+          onDelete={handleDeleteRecipe}
         />
       )}
     </>

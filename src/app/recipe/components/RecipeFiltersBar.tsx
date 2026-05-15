@@ -34,25 +34,44 @@ export default function RecipeFiltersBar({ dictionaries }: { dictionaries: Dicti
     const newUrl = `?${params.toString()}`;
     // Use replace to avoid adding to history stack for filter changes
     router.replace(newUrl, { scroll: false });
-  }, [router]);
+  }, [searchParams, router]);
 
   // Keep ref updated with latest function
   useEffect(() => {
     updateFnRef.current = updateParam;
   }, [updateParam]);
 
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const updateMultiParam = useCallback(
     (key: string, ids: number[]) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (ids.length === 0) {
-        params.delete(key);
-      } else {
-        params.set(key, ids.join(','));
+      // Clear any pending debounce
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
       }
-      router.replace(`?${params.toString()}`, { scroll: false });
+
+      // Debounce the update by 300ms
+      debounceTimeoutRef.current = setTimeout(() => {
+        const params = new URLSearchParams(searchParams.toString());
+        if (ids.length === 0) {
+          params.delete(key);
+        } else {
+          params.set(key, ids.join(','));
+        }
+        router.replace(`?${params.toString()}`, { scroll: false });
+      }, 300);
     },
     [searchParams, router]
   );
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const parseMultiParam = (key: string): number[] => {
     const value = searchParams.get(key);
@@ -87,7 +106,7 @@ export default function RecipeFiltersBar({ dictionaries }: { dictionaries: Dicti
         options={dictionaries.difficulties}
         selected={parseMultiParam('difficulties')}
         onChange={(ids) => updateMultiParam('difficulties', ids)}
-        label="Dificultad"
+        label="Tiempo de elaboración"
       />
       <MealTypeMultiSelect
         options={dictionaries.mealTypes}
