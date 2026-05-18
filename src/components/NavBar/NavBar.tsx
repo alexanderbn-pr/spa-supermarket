@@ -19,7 +19,7 @@ export const NavBar = () => {
   return (
     <nav className="sticky top-0 z-50 bg-slate-800 px-6 py-3">
       <div className="mx-auto flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/recipe" className="flex items-center gap-2">
           <span className="material-symbols-outlined text-3xl text-emerald-500">
             soup_kitchen
           </span>

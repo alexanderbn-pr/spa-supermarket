@@ -80,6 +80,7 @@ export function useDictionaries() {
   };
 
   // Full refetch (shows loading)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const refetch = useCallback(() => loadData(true), []);
   
   // Individual refetch functions - fetch only specific dictionary
@@ -110,6 +111,7 @@ export function useDictionaries() {
 
   useEffect(() => {
     loadData(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

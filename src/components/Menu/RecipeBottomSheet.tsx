@@ -21,13 +21,6 @@ export default function RecipeBottomSheet({
     option.label.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Reset search when sheet closes
-  useEffect(() => {
-    if (!isOpen) {
-      setSearchQuery('');
-    }
-  }, [isOpen]);
-
   // Focus input when sheet opens
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -84,6 +77,7 @@ export default function RecipeBottomSheet({
               />
             </svg>
             <input
+              key={isOpen ? 'open' : 'closed'}
               ref={inputRef}
               type="text"
               value={searchQuery}
