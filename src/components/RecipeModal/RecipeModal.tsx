@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Recipe } from '@/types/recipes.types';
-import { deleteRecipe } from '@/api/recipe/create-recipe';
+import { deleteRecipeAction } from '@/actions/recipe-actions';
 
 interface RecipeModalProps {
   recipe: Recipe;
@@ -46,7 +46,7 @@ const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, isOpen, onClose, onDe
   const handleDeleteConfirm = async () => {
     try {
       setIsDeleting(true);
-      await deleteRecipe(recipe.id);
+      await deleteRecipeAction(recipe.id);
       setShowDeleteConfirm(false);
       onClose();
       if (onDelete) {

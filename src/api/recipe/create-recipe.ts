@@ -1,8 +1,10 @@
 import { supabase } from '@/lib/supabaseClient';
 import { RecipeFormData } from '../../app/recipe/new/config/schema';
 
+// Note: revalidatePath is called in the Server Action wrapper, not here
+// This keeps the API functions clean and usable in any context
+
 export const createRecipe = async (data: RecipeFormData) => {
-  console.log('Creating recipe with data:', data);
   const { data: recipe, error } = await supabase
     .from('recipes')
     .insert({
@@ -18,8 +20,7 @@ export const createRecipe = async (data: RecipeFormData) => {
     .single();
 
   if (error) throw error;
-  console.log('Recipe created:', recipe);
-  
+
   if (data.ingredient_ids.length > 0) {
     const ingredientLinks = data.ingredient_ids.map((ingredient) => ({
       id_recipe: recipe.id,
@@ -38,8 +39,6 @@ export const createRecipe = async (data: RecipeFormData) => {
 };
 
 export const updateRecipe = async (id: number, data: RecipeFormData) => {
-  console.log('Updating recipe with id:', id, 'data:', data);
-  
   // Update recipe main data
   const { data: recipe, error } = await supabase
     .from('recipes')
@@ -57,7 +56,6 @@ export const updateRecipe = async (id: number, data: RecipeFormData) => {
     .single();
 
   if (error) throw error;
-  console.log('Recipe updated:', recipe);
 
   // Delete existing ingredient relations
   const { error: deleteError } = await supabase
@@ -86,8 +84,6 @@ export const updateRecipe = async (id: number, data: RecipeFormData) => {
 };
 
 export const deleteRecipe = async (id: number) => {
-  console.log('Deleting recipe with id:', id);
-  
   // Delete ingredient relations first
   const { error: deleteLinksError } = await supabase
     .from('rel_recipes_ingredients')
@@ -103,13 +99,12 @@ export const deleteRecipe = async (id: number) => {
     .eq('id', id);
 
   if (deleteError) throw deleteError;
-  
-  console.log('Recipe deleted:', id);
 };
 
+// Note: revalidatePath('/menu') is called in the Server Action wrapper (deleteRecipeAction in recipe-actions.ts)
+// This keeps the API function clean and usable in any context
+
 export const getRecipeById = async (id: number) => {
-  console.log('Fetching recipe with id:', id);
-  
   const { data: recipe, error } = await supabase
     .from('recipes')
     .select('*')
@@ -143,7 +138,7 @@ export const getRecipeById = async (id: number) => {
         id: rel.id_ingredient,
         name: ing?.name || '',
         description: ing?.description || '',
-        quantity: rel.quantity,
+        quantity: String(rel.quantity), // Ensure string type for Zod validation
       };
     });
   }

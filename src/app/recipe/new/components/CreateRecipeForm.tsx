@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { recipeSchema, RecipeFormData } from '../config/schema';
 import { recipeFormConfig } from '../config/form.config';
 import GenericForm from '@/components/ComponentsForm/GenericForm';
-import { createRecipe, updateRecipe, getRecipeById } from '@/api/recipe/create-recipe';
+import { createRecipeAction, updateRecipeAction, getRecipeById } from '@/actions/recipe-actions';
 import { useDictionaries } from '@/hooks/useDictionaries';
 import { CreateRecipeFormSkeleton } from '@/components/Skeleton/FormSkeleton';
 import {
@@ -86,19 +86,22 @@ export default function CreateRecipeForm({ recipeId }: CreateRecipeFormProps) {
           const recipe = await getRecipeById(recipeId);
           
           // T11: Pre-populate form using useForm.reset()
-          reset({
-            name: recipe.name,
-            description: recipe.description,
-            url: recipe.url || '',
-            type_id: recipe.type?.id || 0,
-            difficulty_id: recipe.difficulty?.id || 0,
-            meal_type_id: recipe.mealType?.id || 0,
-            healthy_level_id: recipe.healthyLevel?.id || 0,
-            ingredient_ids: recipe.ingredients?.map(ing => ({
-              id: ing.id,
-              quantity: ing.quantity,
-            })) || [],
-          });
+          // Use setTimeout to ensure fields are registered before reset
+          setTimeout(() => {
+            reset({
+              name: recipe.name,
+              description: recipe.description,
+              url: recipe.url || '',
+              type_id: recipe.type?.id || 0,
+              difficulty_id: recipe.difficulty?.id || 0,
+              meal_type_id: recipe.mealType?.id || 0,
+              healthy_level_id: recipe.healthyLevel?.id || 0,
+              ingredient_ids: recipe.ingredients?.map((ing) => ({
+                id: ing.id,
+                quantity: ing.quantity,
+              })) || [],
+            });
+          }, 0);
         } catch (err) {
           console.error('Error fetching recipe:', err);
           // T14: Handle "recipe not found" error
@@ -196,13 +199,13 @@ export default function CreateRecipeForm({ recipeId }: CreateRecipeFormProps) {
     try {
       setIsSubmitting(true);
       if (isEditMode && recipeId) {
-        await updateRecipe(recipeId, data);
+        await updateRecipeAction(recipeId, data);
       } else {
-        await createRecipe(data);
+        await createRecipeAction(data);
       }
       router.push('/recipe');
     } catch (err) {
-      console.error(err);
+      console.error('Error al guardar la receta:', err);
       setError('Error al guardar la receta');
     } finally {
       setIsSubmitting(false);
