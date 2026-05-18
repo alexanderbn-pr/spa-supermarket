@@ -48,20 +48,11 @@ export default function MultiSelect({
     setIsOpen((prev) => !prev);
   }, []);
 
-  const handleTouchEnd = useCallback(
-    (e: React.TouchEvent) => {
-      e.preventDefault();
-      handleToggle();
-    },
-    [handleToggle]
-  );
-
   return (
     <div ref={containerRef} className="relative">
       <button
         type="button"
         onClick={handleToggle}
-        onTouchEnd={handleTouchEnd}
         className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
