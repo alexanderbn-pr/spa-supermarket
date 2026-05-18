@@ -3,20 +3,28 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { BaseLookup } from '@/types/recipes.types';
 
-interface MultiSelectProps {
+export interface MultiSelectProps {
   options: BaseLookup[];
   selected: number[];
   onChange: (ids: number[]) => void;
   label: string;
 }
 
-export default function HealthyLevelMultiSelect({ options, selected, onChange, label }: MultiSelectProps) {
+export default function MultiSelect({
+  options,
+  selected,
+  onChange,
+  label,
+}: MultiSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -40,10 +48,13 @@ export default function HealthyLevelMultiSelect({ options, selected, onChange, l
     setIsOpen((prev) => !prev);
   }, []);
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    handleToggle();
-  }, [handleToggle]);
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      e.preventDefault();
+      handleToggle();
+    },
+    [handleToggle]
+  );
 
   return (
     <div ref={containerRef} className="relative">
@@ -67,27 +78,38 @@ export default function HealthyLevelMultiSelect({ options, selected, onChange, l
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
 
       {isOpen && (
         <div className="absolute left-0 top-full z-50 mt-1 min-w-[180px] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
-          <ul className="max-h-60 overflow-y-auto py-1" role="listbox">
-            {options.map((option) => (
-              <li key={option.id}>
-                <label className="flex cursor-pointer items-center gap-2 px-3 py-2 hover:bg-gray-50">
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(option.id)}
-                    onChange={() => toggleOption(option.id)}
-                    className="h-4 w-4 rounded border-gray-300 text-emerald-500 focus:ring-emerald-500"
-                  />
-                  <span className="text-sm text-gray-700">{option.name}</span>
-                </label>
-              </li>
-            ))}
-          </ul>
+          {options.length === 0 ? (
+            <div className="px-3 py-2 text-sm text-gray-500">
+              No hay opciones disponibles
+            </div>
+          ) : (
+            <ul className="max-h-60 overflow-y-auto py-1" role="listbox">
+              {options.map((option) => (
+                <li key={option.id}>
+                  <label className="flex cursor-pointer items-center gap-2 px-3 py-2 hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(option.id)}
+                      onChange={() => toggleOption(option.id)}
+                      className="h-4 w-4 rounded border-gray-300 text-emerald-500 focus:ring-emerald-500"
+                    />
+                    <span className="text-sm text-gray-700">{option.name}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </div>

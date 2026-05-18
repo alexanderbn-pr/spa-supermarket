@@ -3,10 +3,7 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useCallback, useRef, useEffect } from 'react';
 import SearchInput from './SearchInput';
-import TypeMultiSelect from './TypeMultiSelect';
-import DifficultyMultiSelect from './DifficultyMultiSelect';
-import MealTypeMultiSelect from './MealTypeMultiSelect';
-import HealthyLevelMultiSelect from './HealthyLevelMultiSelect';
+import MultiSelect from '@/components/ui/MultiSelect';
 import FavoriteCheckbox from './FavoriteCheckbox';
 import { BaseLookup } from '@/types/recipes.types';
 
@@ -96,25 +93,25 @@ export default function RecipeFiltersBar({ dictionaries }: { dictionaries: Dicti
         initialValue={searchParams.get('search') ?? ''}
         onSearch={handleSearch}
       />
-      <TypeMultiSelect
+      <MultiSelect
         options={dictionaries.types}
         selected={parseMultiParam('types')}
         onChange={(ids) => updateMultiParam('types', ids)}
         label="Tipo"
       />
-      <DifficultyMultiSelect
+      <MultiSelect
         options={dictionaries.difficulties}
         selected={parseMultiParam('difficulties')}
         onChange={(ids) => updateMultiParam('difficulties', ids)}
         label="Tiempo de elaboración"
       />
-      <MealTypeMultiSelect
+      <MultiSelect
         options={dictionaries.mealTypes}
         selected={parseMultiParam('mealTypes')}
         onChange={(ids) => updateMultiParam('mealTypes', ids)}
         label="Comida"
       />
-      <HealthyLevelMultiSelect
+      <MultiSelect
         options={dictionaries.healthyLevels}
         selected={parseMultiParam('healthyLevels')}
         onChange={(ids) => updateMultiParam('healthyLevels', ids)}

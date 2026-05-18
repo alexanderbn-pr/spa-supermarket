@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { ShoppingItem } from '@/hooks/useShoppingList';
 
 function ShoppingItemRow({ item, onToggle, onIncrement, onDecrement, onDelete }: {
@@ -78,4 +79,4 @@ function ShoppingItemRow({ item, onToggle, onIncrement, onDecrement, onDelete }:
   );
 }
 
-export default ShoppingItemRow;
+export default React.memo(ShoppingItemRow);

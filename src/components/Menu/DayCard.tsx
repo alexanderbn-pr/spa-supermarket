@@ -1,9 +1,10 @@
 'use client';
 
+import React from 'react';
 import MealButton from './MealButton';
 import type { DayCardProps } from '../../types/menu.types';
 
-export default function DayCard({
+export default React.memo(function DayCard({
   dayLabel,
   comida,
   cena,
@@ -36,4 +37,4 @@ export default function DayCard({
       </div>
     </div>
   );
-}
+});

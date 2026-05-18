@@ -16,6 +16,10 @@ import { fetchMenu } from '@/api/menu/get-menus';
 import { saveMenuItem as apiSaveMenuItem } from '@/api/menu/save-menu';
 import { fetchRecipes } from '@/api/recipe/get-recipes';
 
+// Magic constants for recipe type filtering
+const COMIDA_TYPE_IDS: number[] = [1, 3];
+const CENA_TYPE_IDS: number[] = [2, 3];
+
 interface UseMenuOptions {
   initialRecipes?: Recipe[];
   initialMenu?: DayMenu[];
@@ -151,7 +155,7 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuReturn {
       ];
 
       recipes
-        .filter((r) => r.type.id === 1 || r.type.id === 3)
+        .filter((r) => COMIDA_TYPE_IDS.includes(r.type.id))
         .forEach((r) => {
           options.push({
             value: r.id,
@@ -177,7 +181,7 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuReturn {
       ];
 
       recipes
-        .filter((r) => r.type.id === 2 || r.type.id === 3)
+        .filter((r) => CENA_TYPE_IDS.includes(r.type.id))
         .forEach((r) => {
           options.push({
             value: r.id,
@@ -199,7 +203,6 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuReturn {
 
       // Use refs for stable access to latest state
       const currentRecipes = recipesRef.current;
-      const currentWeekMenu = weekMenuRef.current;
 
       // Optimistic update
       setWeekMenu((prev) =>

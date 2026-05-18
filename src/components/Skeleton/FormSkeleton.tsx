@@ -10,7 +10,6 @@ interface FormSkeletonProps {
 }
 
 export function FormSkeleton({
-  title = 'Cargando...',
   subtitle,
   fields = 5,
   showActions = true,

@@ -1,8 +1,9 @@
 'use client';
 
+import React from 'react';
 import type { MealButtonProps } from '../../types/menu.types';
 
-export default function MealButton({
+export default React.memo(function MealButton({
   label,
   recipe,
   onClick,
@@ -24,4 +25,4 @@ export default function MealButton({
       </span>
     </button>
   );
-}
+});
