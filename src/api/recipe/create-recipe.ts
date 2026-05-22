@@ -15,6 +15,7 @@ export const createRecipe = async (data: RecipeFormData) => {
       difficulty_id: data.difficulty_id,
       meal_type_id: data.meal_type_id,
       healthy_level_id: data.healthy_level_id,
+      comodin: data.comodin ?? false,
     })
     .select()
     .single();
@@ -50,6 +51,7 @@ export const updateRecipe = async (id: number, data: RecipeFormData) => {
       difficulty_id: data.difficulty_id,
       meal_type_id: data.meal_type_id,
       healthy_level_id: data.healthy_level_id,
+      comodin: data.comodin ?? false,
     })
     .eq('id', id)
     .select()
@@ -161,5 +163,6 @@ export const getRecipeById = async (id: number) => {
     mealType: mealTypeData.data,
     healthyLevel: healthyLevelData.data,
     ingredients,
+    comodin: recipe.comodin,
   };
 };

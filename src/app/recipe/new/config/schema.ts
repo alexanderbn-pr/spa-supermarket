@@ -15,6 +15,7 @@ export const recipeSchema = z.object({
   meal_type_id: z.number().min(1, 'Selecciona un tipo de comida'),
   healthy_level_id: z.number().min(1, 'Selecciona un nivel saludable'),
   ingredient_ids: z.array(ingredientSchema),
+  comodin: z.boolean().optional(),
 });
 
 export type RecipeFormData = z.infer<typeof recipeSchema>;

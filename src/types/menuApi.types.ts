@@ -17,7 +17,7 @@ export type Moment = 'comida' | 'cena';
 export interface Day {
   id: number;
   name: DayName;
-  label: string;
+  description: string;
 }
 
 // Moment record from Supabase (referenced by foreign key)
@@ -33,8 +33,6 @@ export interface MenuRow {
   day: Day;
   moment_id: number;
   recipe_id: number;
-  created_at: string;
-  updated_at: string;
 }
 
 // Combined day+recipe for local state

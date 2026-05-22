@@ -167,6 +167,16 @@ const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, isOpen, onClose, onDe
                   </span>
                 </div>
               )}
+              {recipe.comodin && (
+                <div className="flex flex-col gap-1 rounded-lg bg-amber-50 p-3">
+                  <span className="text-xs font-medium uppercase tracking-wider text-amber-600">
+                    Comodín
+                  </span>
+                  <span className="font-semibold text-amber-900">
+                    Reutilizable en menú
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

@@ -6,8 +6,11 @@ export const fetchMenu = async (): Promise<FetchMenuResponse> => {
     const { data, error } = await supabase
       .from('menus')
       .select(`
-      *,
-      day:days (*)
+      id,
+      day_id,
+      recipe_id,
+      moment_id,
+      day:days (id, name, description)
     `)
       .returns<MenuRow[]>();
 
@@ -15,7 +18,7 @@ export const fetchMenu = async (): Promise<FetchMenuResponse> => {
       console.error('Error fetching menu:', error);
       return { data: [], error: error.message };
     }
-    console.log('Fetched menu data:', data);
+    console.log('[menu-debug] fetchMenu raw:', data);
     return { data: data ?? [], error: null };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';

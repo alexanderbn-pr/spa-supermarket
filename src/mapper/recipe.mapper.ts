@@ -10,5 +10,6 @@ export const mapRecipeRowToRecipe = (r: RecipeRow): Recipe => ({
   difficulty:  r.difficulty,
   mealType:  r.meal_type,
   healthyLevel: r.healthy_level,
-  favourite: r.favourite
+  favourite: r.favourite,
+  comodin: r.comodin
 })

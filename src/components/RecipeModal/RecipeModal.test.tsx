@@ -3,6 +3,25 @@ import { render, screen } from '@testing-library/react';
 import { Recipe } from '@/types/recipes.types';
 import RecipeModal from './RecipeModal';
 
+// Mock next/navigation for useRouter
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => '/',
+  useSearchParams: () => new URLSearchParams(),
+}));
+
+// Mock server action to prevent supabase import during tests
+vi.mock('@/actions/recipe-actions', () => ({
+  deleteRecipeAction: vi.fn(),
+}));
+
 const mockRecipe: Recipe = {
   id: 1,
   name: 'Paella Valenciana',
@@ -16,6 +35,13 @@ const mockRecipe: Recipe = {
     { id: 1, name: 'Arroz', description: 'Arroz bomba', quantity: '500g' },
     { id: 2, name: 'Marisco', description: 'Gambas y mejillones', quantity: '300g' },
   ],
+};
+
+const mockComodinRecipe: Recipe = {
+  ...mockRecipe,
+  id: 2,
+  name: 'Comodín Pizza',
+  comodin: true,
 };
 
 describe('RecipeModal', () => {
@@ -67,10 +93,19 @@ describe('RecipeModal', () => {
     // This test may need adjustment based on actual behavior
   });
 
-  it('should render ingredient descriptions when available', () => {
+
+
+  it('should show comodin badge when recipe has comodin=true', () => {
+    render(<RecipeModal recipe={mockComodinRecipe} isOpen={true} onClose={() => {}} />);
+
+    expect(screen.getByText('Comodín')).toBeInTheDocument();
+    expect(screen.getByText('Reutilizable en menú')).toBeInTheDocument();
+  });
+
+  it('should not show comodin badge when recipe has comodin=false', () => {
     render(<RecipeModal recipe={mockRecipe} isOpen={true} onClose={() => {}} />);
 
-    expect(screen.getByText('Arroz bomba')).toBeInTheDocument();
-    expect(screen.getByText('Gambas y mejillones')).toBeInTheDocument();
+    expect(screen.queryByText('Comodín')).not.toBeInTheDocument();
+    expect(screen.queryByText('Reutilizable en menú')).not.toBeInTheDocument();
   });
 });
