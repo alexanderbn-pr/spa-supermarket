@@ -7,11 +7,12 @@ import TextareaField from './TextareaField';
 import SelectField from './SelectField';
 import MultiselectField from './MultiselectField';
 import ComboboxField from './ComboboxField';
+import CheckboxField from './CheckboxField';
 
 export interface FromField {
   name: keyof RecipeFormData;
   label: string;
-  mode: 'input' | 'select' | 'multiselect' | 'textarea' | 'combobox';
+  mode: 'input' | 'select' | 'multiselect' | 'textarea' | 'combobox' | 'checkbox';
   inputType?: 'text' | 'url' | 'email' | 'password' | 'number';
   placeholder?: string;
   options?: { value: number; label: string }[];
@@ -102,6 +103,15 @@ export default function GenericForm({
                 errors={errors}
                 onCreateOption={field.onCreateOption}
                 onEditOption={field.onEditOption}
+              />
+            );
+          case 'checkbox':
+            return (
+              <CheckboxField
+                key={String(field.name)}
+                field={field}
+                register={register}
+                errors={errors}
               />
             );
           default:

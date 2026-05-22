@@ -112,6 +112,7 @@ export function RecipeListClient({ recipes }: RecipeListClientProps) {
                 mainLabel={recipe.type?.name}
                 recipeId={recipe.id}
                 isFavorite={recipe.favourite}
+                isComodin={recipe.comodin}
                 onFavorite={memoizedHandleFavorite}
               />
             </div>

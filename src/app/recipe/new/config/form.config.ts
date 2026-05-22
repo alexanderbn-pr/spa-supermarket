@@ -48,4 +48,9 @@ export const recipeFormConfig: FromField[] = [
     mode: 'multiselect',
     placeholder: 'Selecciona ingredientes',
   },
+  {
+    name: 'comodin',
+    label: 'Receta comodín',
+    mode: 'checkbox',
+  },
 ];

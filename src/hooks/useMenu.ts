@@ -134,8 +134,8 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuReturn {
       const ids: number[] = [];
       weekMenu.forEach(({ day, comida, cena }) => {
         if (day !== excludeDay) {
-          if (comida) ids.push(comida.id);
-          if (cena) ids.push(cena.id);
+          if (comida && !comida.comodin) ids.push(comida.id);
+          if (cena && !cena.comodin) ids.push(cena.id);
         }
       });
       return ids;

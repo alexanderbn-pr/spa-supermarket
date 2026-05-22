@@ -9,6 +9,7 @@ export interface Recipe {
   mealType: MealType;
   healthyLevel: HealthyLevel;
   favourite?: boolean;
+  comodin?: boolean;
 }
 
 export interface BaseLookup {
@@ -40,6 +41,7 @@ export interface RecipeRow {
   meal_type: MealType;
   healthy_level: HealthyLevel;
   favourite?: boolean;
+  comodin?: boolean;
 }
 
 export interface RecipeFilters {
