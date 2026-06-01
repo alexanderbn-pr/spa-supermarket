@@ -8,6 +8,10 @@ export interface DayListProps {
   getCenaOptions: (day: DayName) => SelectorOption[];
   onComidaChange: (day: DayName) => (recipeId: number | null) => void;
   onCenaChange: (day: DayName) => (recipeId: number | null) => void;
+  // Acompañante support — optionally wired by parent
+  onToggleAcompanante?: (day: DayName, moment: 'comida' | 'cena') => void;
+  onAcompananteChange?: (day: DayName, moment: 'comida' | 'cena', recipeIds: number[]) => void;
+  acompananteRecipes?: Recipe[];
 }
 
 // DayCard - per day card
@@ -19,6 +23,12 @@ export interface DayCardProps {
   cenaOptions: SelectorOption[];
   onComidaClick: () => void;
   onCenaClick: () => void;
+  // Acompañante support — optionally wired by parent
+  acompananteEnabled?: Record<'comida' | 'cena', boolean>;
+  acompanantes?: Record<'comida' | 'cena', Recipe[]>;
+  acompananteRecipes?: Recipe[];
+  onToggleAcompanante?: (moment: 'comida' | 'cena') => void;
+  onAcompananteChange?: (moment: 'comida' | 'cena', recipeIds: number[]) => void;
 }
 
 // MealButton - tap-friendly button

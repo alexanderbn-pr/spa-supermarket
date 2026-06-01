@@ -41,6 +41,16 @@ export interface DayMenu {
   dayLabel: string;
   comida: Recipe | null;
   cena: Recipe | null;
+  acompananteEnabled: Record<Moment, boolean>;
+  acompanantes: Record<Moment, Recipe[]>;
+}
+
+// Acompañante row from menu_acompanantes table
+export interface AcompananteRow {
+  id: number;
+  day_id: number;
+  moment_id: number;
+  recipe_id: number;
 }
 
 // Full week menu

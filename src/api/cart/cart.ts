@@ -40,7 +40,6 @@ export async function fetchCartList(): Promise<CartItem[]> {
       )
     `)
     .eq('deleted', false)
-    .order('ingredient(name)', { ascending: true })
     .returns<CartListRow[]>();
 
   if (error) {

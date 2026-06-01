@@ -7,6 +7,7 @@ import ShoppingItemRow from './ShoppingItemRow';
 export default function ShoppingList() {
   const {
     items,
+    sortedItems,
     inputValue,
     incrementQuantity,
     decrementQuantity,
@@ -70,7 +71,7 @@ export default function ShoppingList() {
             </button>
           </div>
           <div className="space-y-3">
-            {items.map((item) => (
+            {sortedItems.map((item) => (
               <ShoppingItemRow
                 key={item.id}
                 item={item}

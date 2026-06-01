@@ -18,8 +18,16 @@ export interface ShoppingItem {
   ingredientId: number;
 }
 
+export function sortShoppingItems(items: ShoppingItem[]): ShoppingItem[] {
+  return [...items].sort((a, b) => {
+    if (a.checked !== b.checked) return a.checked ? 1 : -1;
+    return a.name.localeCompare(b.name, 'es');
+  });
+}
+
 export function useShoppingList() {
   const [items, setItems] = useState<ShoppingItem[]>([]);
+  const sortedItems = sortShoppingItems(items);
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(true);
   const [clearing, setClearing] = useState(false);
@@ -153,6 +161,7 @@ export function useShoppingList() {
 
   return {
     items,
+    sortedItems,
     inputValue,
     loading,
     clearing,
