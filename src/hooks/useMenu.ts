@@ -11,10 +11,16 @@ import {
   DAYS,
   DAY_ID_MAP,
   MOMENT_ID_MAP,
+  AcompananteRow,
 } from '@/types/menuApi.types';
 import { fetchMenu } from '@/api/menu/get-menus';
 import { saveMenuItem as apiSaveMenuItem } from '@/api/menu/save-menu';
 import { fetchRecipes } from '@/api/recipe/get-recipes';
+import {
+  fetchAcompanantes,
+  addAcompanante,
+  clearAcompanantesForMoment,
+} from '@/api/menu/acompanantes';
 
 // Magic constants for recipe type filtering
 const COMIDA_TYPE_IDS: number[] = [1, 3];
@@ -48,11 +54,21 @@ interface UseMenuReturn {
 
   // Refresh
   refetch: () => Promise<void>;
+
+  // Acompañante support
+  toggleAcompanante: (day: DayName, moment: Moment) => Promise<void>;
+  setAcompananteRecipes: (
+    day: DayName,
+    moment: Moment,
+    recipeIds: number[]
+  ) => Promise<void>;
+  getAcompananteRecipes: () => Recipe[];
 }
 
 function buildWeekMenu(
   recipes: Recipe[],
-  menuData: { day_id: number; moment_id: number; recipe_id: number }[]
+  menuData: { day_id: number; moment_id: number; recipe_id: number }[],
+  acompanantesData: AcompananteRow[] = []
 ): WeekMenu {
   // Build a map of day_id -> { comida, cena }
   const menuMap: Record<
@@ -81,13 +97,43 @@ function buildWeekMenu(
     }
   });
 
+  // Build acompañante map: day_id -> { comida: Recipe[], cena: Recipe[] }
+  const acompananteMap: Record<
+    number,
+    { comida: Recipe[]; cena: Recipe[] }
+  > = {};
+
+  acompanantesData.forEach(({ day_id, moment_id, recipe_id }) => {
+    const recipe = recipes.find((r) => r.id === recipe_id);
+    if (!recipe) return;
+
+    if (!acompananteMap[day_id]) {
+      acompananteMap[day_id] = { comida: [], cena: [] };
+    }
+
+    if (moment_id === 1) {
+      acompananteMap[day_id].comida.push(recipe);
+    } else if (moment_id === 2) {
+      acompananteMap[day_id].cena.push(recipe);
+    }
+  });
+
   // Convert to WeekMenu array
-  return DAYS.map((dayConfig, index) => ({
-    day: dayConfig.name,
-    dayLabel: dayConfig.label,
-    comida: menuMap[index + 1]?.comida ?? null,
-    cena: menuMap[index + 1]?.cena ?? null,
-  }));
+  return DAYS.map((dayConfig, index) => {
+    const dayAcompanantes = acompananteMap[index + 1];
+
+    return {
+      day: dayConfig.name,
+      dayLabel: dayConfig.label,
+      comida: menuMap[index + 1]?.comida ?? null,
+      cena: menuMap[index + 1]?.cena ?? null,
+      acompananteEnabled: {
+        comida: (dayAcompanantes?.comida.length ?? 0) > 0,
+        cena: (dayAcompanantes?.cena.length ?? 0) > 0,
+      },
+      acompanantes: dayAcompanantes ?? { comida: [], cena: [] },
+    };
+  });
 }
 
 export function useMenu(options: UseMenuOptions = {}): UseMenuReturn {
@@ -102,6 +148,8 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuReturn {
     dayLabel: dayConfig.label,
     comida: null,
     cena: null,
+    acompananteEnabled: { comida: false, cena: false },
+    acompanantes: { comida: [], cena: [] },
   })));
   
   const [weekMenu, setWeekMenu] = useState<WeekMenu>(() => {
@@ -114,6 +162,8 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuReturn {
       dayLabel: dayConfig.label,
       comida: null,
       cena: null,
+      acompananteEnabled: { comida: false, cena: false },
+      acompanantes: { comida: [], cena: [] },
     }));
   });
   const [loading, setLoading] = useState(initialRecipes.length === 0);
@@ -267,18 +317,106 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuReturn {
     setError(null);
 
     try {
-      const [recipesData, menuData] = await Promise.all([
+      const [recipesData, menuData, acompanantesData] = await Promise.all([
         fetchRecipes(),
         fetchMenu(),
+        fetchAcompanantes(),
       ]);
 
       setRecipes(recipesData);
-      setWeekMenu(buildWeekMenu(recipesData, menuData.data));
+      setWeekMenu(buildWeekMenu(recipesData, menuData.data, acompanantesData.data));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar datos');
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  // Toggle acompañante section for a day+moment
+  const toggleAcompanante = useCallback(
+    async (day: DayName, moment: Moment) => {
+      const dayId = DAY_ID_MAP[day];
+      const momentId = MOMENT_ID_MAP[moment];
+
+      // Read current enabled state from ref
+      const dayMenu = weekMenuRef.current.find((d) => d.day === day);
+      const wasEnabled = dayMenu?.acompananteEnabled[moment] ?? false;
+
+      // Optimistic update
+      setWeekMenu((prev) =>
+        prev.map((dm) => {
+          if (dm.day !== day) return dm;
+          return {
+            ...dm,
+            acompananteEnabled: {
+              ...dm.acompananteEnabled,
+              [moment]: !wasEnabled,
+            },
+            acompanantes: wasEnabled
+              ? { ...dm.acompanantes, [moment]: [] }
+              : dm.acompanantes,
+          };
+        })
+      );
+
+      // If turning off, clear from API
+      if (wasEnabled) {
+        const result = await clearAcompanantesForMoment(dayId, momentId);
+        if (!result.success) {
+          setError(result.error);
+        }
+      }
+    },
+    []
+  );
+
+  // Set acompañante recipes for a day+moment
+  const setAcompananteRecipes = useCallback(
+    async (day: DayName, moment: Moment, recipeIds: number[]) => {
+      const dayId = DAY_ID_MAP[day];
+      const momentId = MOMENT_ID_MAP[moment];
+      const currentRecipes = recipesRef.current;
+
+      // Build recipe objects from IDs
+      const selectedRecipes = recipeIds
+        .map((id) => currentRecipes.find((r) => r.id === id))
+        .filter((r): r is Recipe => r !== undefined);
+
+      // Optimistic update
+      setWeekMenu((prev) =>
+        prev.map((dm) => {
+          if (dm.day !== day) return dm;
+          return {
+            ...dm,
+            acompanantes: {
+              ...dm.acompanantes,
+              [moment]: selectedRecipes,
+            },
+          };
+        })
+      );
+
+      // Sync with API: clear all for moment and re-add
+      const clearResult = await clearAcompanantesForMoment(dayId, momentId);
+      if (!clearResult.success) {
+        setError(clearResult.error);
+        return;
+      }
+
+      // Add each recipe
+      for (const recipeId of recipeIds) {
+        const result = await addAcompanante(dayId, momentId, recipeId);
+        if (!result.success) {
+          setError(result.error);
+        }
+      }
+    },
+    []
+  );
+
+  // Get recipes filtered by type.id === 5 (Acompañante)
+  const getAcompananteRecipes = useCallback((): Recipe[] => {
+    return recipesRef.current.filter((r) => r.type.id === 5);
   }, []);
 
   // Initial load if no initial recipes provided
@@ -299,5 +437,8 @@ export function useMenu(options: UseMenuOptions = {}): UseMenuReturn {
     selectRecipe,
     clearAllRecipes,
     refetch,
+    toggleAcompanante,
+    setAcompananteRecipes,
+    getAcompananteRecipes,
   };
 }

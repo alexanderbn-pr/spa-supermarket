@@ -40,6 +40,9 @@ export default function WeeklyCalendar({
     selectRecipe,
     clearAllRecipes,
     refetch,
+    toggleAcompanante,
+    setAcompananteRecipes,
+    getAcompananteRecipes,
   } = useMenu({
     initialRecipes,
     initialMenu,
@@ -59,7 +62,7 @@ export default function WeeklyCalendar({
     (day) => day.comida !== null && day.cena !== null
   );
 
-  // Extract all ingredients from selected recipes
+  // Extract all ingredients from selected recipes (including acompañantes)
   const getIngredientsFromMenu = useCallback(() => {
     const ingredientMap: Record<number, number> = {};
 
@@ -75,6 +78,14 @@ export default function WeeklyCalendar({
 
       if (day.comida) addIngredientsFromRecipe(day.comida);
       if (day.cena) addIngredientsFromRecipe(day.cena);
+
+      // Include acompañante ingredients
+      if (day.acompananteEnabled.comida) {
+        day.acompanantes.comida.forEach(addIngredientsFromRecipe);
+      }
+      if (day.acompananteEnabled.cena) {
+        day.acompanantes.cena.forEach(addIngredientsFromRecipe);
+      }
     });
 
     return Object.entries(ingredientMap).map(([id, quantity]) => ({
@@ -89,6 +100,18 @@ export default function WeeklyCalendar({
 
   const handleCenaChange = (day: DayName) => (recipeId: number | null) => {
     selectRecipe(day, 'cena', recipeId);
+  };
+
+  const handleToggleAcompanante = (day: DayName, moment: 'comida' | 'cena') => {
+    toggleAcompanante(day, moment);
+  };
+
+  const handleAcompananteChange = (
+    day: DayName,
+    moment: 'comida' | 'cena',
+    recipeIds: number[]
+  ) => {
+    setAcompananteRecipes(day, moment, recipeIds);
   };
 
   const handleClearAll = async () => {
@@ -225,6 +248,9 @@ export default function WeeklyCalendar({
         getCenaOptions={getCenaOptions}
         onComidaChange={handleComidaChange}
         onCenaChange={handleCenaChange}
+        onToggleAcompanante={handleToggleAcompanante}
+        onAcompananteChange={handleAcompananteChange}
+        acompananteRecipes={getAcompananteRecipes()}
       />
     </div>
   );

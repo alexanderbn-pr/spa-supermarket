@@ -53,13 +53,20 @@ export default function MultiSelect({
       <button
         type="button"
         onClick={handleToggle}
-        className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+        className="flex min-w-0 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
-        <span>{label}</span>
+        <span className="truncate">
+          {selected.length > 0
+            ? selected
+                .map((id) => options.find((o) => o.id === id)?.name)
+                .filter(Boolean)
+                .join(', ')
+            : label}
+        </span>
         {selected.length > 0 && (
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-xs font-semibold text-white">
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-semibold text-white">
             {selected.length}
           </span>
         )}
@@ -79,7 +86,7 @@ export default function MultiSelect({
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-1 min-w-[180px] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-lg border border-gray-200 bg-white shadow-lg">
           {options.length === 0 ? (
             <div className="px-3 py-2 text-sm text-gray-500">
               No hay opciones disponibles

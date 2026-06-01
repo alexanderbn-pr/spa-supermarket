@@ -13,6 +13,9 @@ export default function DayList({
   getCenaOptions,
   onComidaChange,
   onCenaChange,
+  onToggleAcompanante,
+  onAcompananteChange,
+  acompananteRecipes,
 }: DayListProps) {
   const [sheetState, setSheetState] = useState<{
     isOpen: boolean;
@@ -82,6 +85,19 @@ export default function DayList({
               onComidaClick={() => openSheet(day, 'comida')}
               onCenaClick={() => openSheet(day, 'cena')}
               animationDelay={index * 50}
+              acompananteEnabled={dayMenu.acompananteEnabled}
+              acompanantes={dayMenu.acompanantes}
+              acompananteRecipes={acompananteRecipes}
+              onToggleAcompanante={
+                onToggleAcompanante
+                  ? (moment) => onToggleAcompanante(day, moment)
+                  : undefined
+              }
+              onAcompananteChange={
+                onAcompananteChange
+                  ? (moment, ids) => onAcompananteChange(day, moment, ids)
+                  : undefined
+              }
             />
           );
         })}

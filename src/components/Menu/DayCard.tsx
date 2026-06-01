@@ -2,6 +2,7 @@
 
 import React from 'react';
 import MealButton from './MealButton';
+import AcompananteSelector from './AcompananteSelector';
 import type { DayCardProps } from '../../types/menu.types';
 
 export default React.memo(function DayCard({
@@ -10,11 +11,16 @@ export default React.memo(function DayCard({
   cena,
   onComidaClick,
   onCenaClick,
+  acompananteEnabled,
+  acompanantes,
+  acompananteRecipes,
+  onToggleAcompanante,
+  onAcompananteChange,
   animationDelay = 0,
 }: DayCardProps & { animationDelay?: number }) {
   return (
     <div
-      className="animate-fadeSlideUp overflow-hidden rounded-2xl bg-white shadow-md"
+      className="animate-fadeSlideUp rounded-2xl bg-white shadow-md"
       style={{ animationDelay: `${animationDelay}ms` }}
     >
       {/* Day header */}
@@ -24,16 +30,40 @@ export default React.memo(function DayCard({
 
       {/* Card body */}
       <div className="flex flex-col gap-4 p-5">
-        <MealButton
-          label="Comida"
-          recipe={comida}
-          onClick={onComidaClick}
-        />
-        <MealButton
-          label="Cena"
-          recipe={cena}
-          onClick={onCenaClick}
-        />
+        <div>
+          <MealButton
+            label="Comida"
+            recipe={comida}
+            onClick={onComidaClick}
+          />
+          {onToggleAcompanante && onAcompananteChange && acompananteRecipes && (
+            <AcompananteSelector
+              moment="comida"
+              enabled={acompananteEnabled?.comida ?? false}
+              selectedRecipes={acompanantes?.comida ?? []}
+              acompananteOptions={acompananteRecipes}
+              onToggle={onToggleAcompanante}
+              onChange={onAcompananteChange}
+            />
+          )}
+        </div>
+        <div>
+          <MealButton
+            label="Cena"
+            recipe={cena}
+            onClick={onCenaClick}
+          />
+          {onToggleAcompanante && onAcompananteChange && acompananteRecipes && (
+            <AcompananteSelector
+              moment="cena"
+              enabled={acompananteEnabled?.cena ?? false}
+              selectedRecipes={acompanantes?.cena ?? []}
+              acompananteOptions={acompananteRecipes}
+              onToggle={onToggleAcompanante}
+              onChange={onAcompananteChange}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
