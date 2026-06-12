@@ -4,11 +4,36 @@ import { useState } from 'react';
 import { useShoppingList } from '@/hooks/useShoppingList';
 import ShoppingItemRow from './ShoppingItemRow';
 
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-3" aria-hidden="true">
+      {[1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm animate-pulse"
+        >
+          <div className="flex items-center gap-3 flex-1">
+            <div className="w-5 h-5 rounded border-2 border-gray-200 bg-gray-200" />
+            <div className="h-5 w-28 bg-gray-200 rounded" />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gray-200" />
+            <div className="w-8 h-5 bg-gray-200 rounded" />
+            <div className="w-8 h-8 rounded-full bg-gray-200" />
+            <div className="ml-2 w-8 h-8 bg-gray-200 rounded-lg" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function ShoppingList() {
   const {
-    items,
     sortedItems,
     inputValue,
+    loading,
+    error,
     incrementQuantity,
     decrementQuantity,
     toggleChecked,
@@ -17,6 +42,7 @@ export default function ShoppingList() {
     handleAddSubmit,
     clearAll,
     clearing,
+    refetch,
   } = useShoppingList();
 
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -53,12 +79,34 @@ export default function ShoppingList() {
         </div>
       </form>
 
-      {items.length === 0 ? (
+      {/* Loading skeleton — only on first load */}
+      {loading && sortedItems.length === 0 && <LoadingSkeleton />}
+
+      {/* Error state */}
+      {!loading && error && (
+        <div className="text-center py-12 text-red-500">
+          <p className="text-lg font-medium">No se pudo cargar la lista</p>
+          <p className="text-sm mt-1 text-gray-500">{error}</p>
+          <button
+            type="button"
+            onClick={refetch}
+            className="mt-4 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!loading && !error && sortedItems.length === 0 && (
         <div className="text-center py-12 text-gray-500">
           <p className="text-lg">Tu lista está vacía</p>
           <p className="text-sm mt-1">Añade ingredientes usando el campo de arriba</p>
         </div>
-      ) : (
+      )}
+
+      {/* Item list */}
+      {!loading && !error && sortedItems.length > 0 && (
         <>
           <div className="flex justify-end mb-4">
             <button
@@ -85,10 +133,10 @@ export default function ShoppingList() {
         </>
       )}
 
-      {items.length > 0 && (
+      {sortedItems.length > 0 && (
         <div className="mt-6 text-center text-sm text-gray-500">
-          {items.filter((i) => i.checked).length} de {items.length} elementos
-          comprados
+          {sortedItems.filter((i) => i.checked).length} de {sortedItems.length}{' '}
+          elementos comprados
         </div>
       )}
 
@@ -118,7 +166,7 @@ export default function ShoppingList() {
                 ¿Vaciar la lista?
               </h3>
               <p className="text-gray-500 mb-6">
-                Se eliminarán {items.length} elemento{items.length !== 1 ? 's' : ''} de tu lista de la compra.
+                Se eliminarán {sortedItems.length} elemento{sortedItems.length !== 1 ? 's' : ''} de tu lista de la compra.
               </p>
               <div className="flex gap-3">
                 <button

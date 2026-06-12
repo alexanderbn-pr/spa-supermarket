@@ -9,6 +9,7 @@ import {
   deleteFromCart,
   clearCart,
 } from '@/api/cart/cart';
+import { toastStore } from '@/stores/toastStore';
 
 export interface ShoppingItem {
   id: number;
@@ -30,41 +31,50 @@ export function useShoppingList() {
   const sortedItems = sortShoppingItems(items);
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [clearing, setClearing] = useState(false);
+
+  // Shared fetch + state update logic
+  const loadCart = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const cartItems = await fetchCartList();
+      setItems(cartItems);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Error inesperado al cargar la lista';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // Load initial data from Supabase
   useEffect(() => {
-    const loadCart = async () => {
-      setLoading(true);
-      const cartItems = await fetchCartList();
-      setItems(cartItems);
-      setLoading(false);
-    };
-
     loadCart();
-  }, []);
+  }, [loadCart]);
 
-  // Add item - search or create ingredient in Supabase, then persist
+  // Refetch (publicly exposed for retry)
+  const refetch = useCallback(async () => {
+    await loadCart();
+  }, [loadCart]);
+
+  // Add item — search or create ingredient in Supabase, then persist
   const addItem = useCallback(async (name: string) => {
     if (!name.trim()) return;
 
-    // Call addItemToCartByName API to search/create ingredient and persist to Supabase
     const result = await addItemToCartByName(name.trim());
 
     if (result.success) {
-      // Reload cart from Supabase to get the real ID and data
+      setError(null);
       const cartItems = await fetchCartList();
       setItems(cartItems);
     } else {
-      // If API fails, add locally as fallback with temp ID for UX continuity
-      const newItem: ShoppingItem = {
-        id: Date.now(),
-        name: name.trim(),
-        quantity: 1,
-        checked: false,
-        ingredientId: 0,
-      };
-      setItems((prev) => [...prev, newItem]);
+      toastStore.addToast(
+        'error',
+        `Error al añadir "${name.trim()}": ${result.error}`
+      );
     }
 
     setInputValue('');
@@ -74,28 +84,29 @@ export function useShoppingList() {
     // Optimistic update: remove from UI immediately
     setItems((prev) => prev.filter((item) => item.id !== id));
 
-    // If it's a real Supabase item (id > 0), delete from DB
-    if (id > 0) {
-      await deleteFromCart(id);
+    const result = await deleteFromCart(id);
+    if (!result.success) {
+      toastStore.addToast('error', `Error al eliminar: ${result.error}`);
+      // Reload to get correct state after failed delete
+      const cartItems = await fetchCartList();
+      setItems(cartItems);
     }
   }, []);
 
   const incrementQuantity = useCallback(async (id: number) => {
+    setItems((prev) =>
+      prev.map((i) => (i.id === id ? { ...i, quantity: i.quantity + 1 } : i))
+    );
+
     const item = items.find((i) => i.id === id);
     if (!item) return;
 
-    const newQuantity = item.quantity + 1;
-
-    // Update local state immediately (optimistic)
-    setItems((prev) =>
-      prev.map((i) =>
-        i.id === id ? { ...i, quantity: newQuantity } : i
-      )
-    );
-
-    // If it's a real Supabase item, persist
-    if (id > 0) {
-      await updateCartQuantity(id, newQuantity);
+    const result = await updateCartQuantity(id, item.quantity + 1);
+    if (!result.success) {
+      toastStore.addToast('error', `Error al aumentar cantidad: ${result.error}`);
+      // Revert optimistic update
+      const cartItems = await fetchCartList();
+      setItems(cartItems);
     }
   }, [items]);
 
@@ -105,16 +116,17 @@ export function useShoppingList() {
 
     const newQuantity = item.quantity - 1;
 
-    // Update local state immediately (optimistic)
+    // Optimistic update
     setItems((prev) =>
-      prev.map((i) =>
-        i.id === id ? { ...i, quantity: newQuantity } : i
-      )
+      prev.map((i) => (i.id === id ? { ...i, quantity: newQuantity } : i))
     );
 
-    // If it's a real Supabase item, persist
-    if (id > 0) {
-      await updateCartQuantity(id, newQuantity);
+    const result = await updateCartQuantity(id, newQuantity);
+    if (!result.success) {
+      toastStore.addToast('error', `Error al disminuir cantidad: ${result.error}`);
+      // Revert optimistic update
+      const cartItems = await fetchCartList();
+      setItems(cartItems);
     }
   }, [items]);
 
@@ -124,16 +136,18 @@ export function useShoppingList() {
 
     const newChecked = !item.checked;
 
-    // Update local state immediately (optimistic)
+    // Optimistic update
     setItems((prev) =>
-      prev.map((i) =>
-        i.id === id ? { ...i, checked: newChecked } : i
-      )
+      prev.map((i) => (i.id === id ? { ...i, checked: newChecked } : i))
     );
 
-    // If it's a real Supabase item, persist
-    if (id > 0) {
-      await toggleCartItem(id);
+    const result = await toggleCartItem(id);
+    if (!result.success) {
+      toastStore.addToast('error', `Error al cambiar estado: ${result.error}`);
+      // Revert optimistic update
+      setItems((prev) =>
+        prev.map((i) => (i.id === id ? { ...i, checked: item.checked } : i))
+      );
     }
   }, [items]);
 
@@ -154,6 +168,9 @@ export function useShoppingList() {
     const result = await clearCart();
     if (result.success) {
       setItems([]);
+      setError(null);
+    } else {
+      toastStore.addToast('error', `Error al vaciar la lista: ${result.error}`);
     }
     setClearing(false);
     return result;
@@ -164,6 +181,7 @@ export function useShoppingList() {
     sortedItems,
     inputValue,
     loading,
+    error,
     clearing,
     addItem,
     removeItem,
@@ -173,5 +191,6 @@ export function useShoppingList() {
     handleInputChange,
     handleAddSubmit,
     clearAll,
+    refetch,
   };
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
+import ToastContainer from "@/components/ui/ToastContainer";
 import 'material-icons/iconfont/material-icons.css'
 import 'material-symbols/outlined.css'
 import "../styles/globals.css";
@@ -47,6 +48,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        <ToastContainer />
       </body>
     </html>
   );

@@ -44,7 +44,7 @@ export async function fetchCartList(): Promise<CartItem[]> {
 
   if (error) {
     console.error('Error fetching cart list:', error);
-    return [];
+    throw new Error(error.message);
   }
 
   return (data ?? []).map((row) => ({
@@ -56,16 +56,15 @@ export async function fetchCartList(): Promise<CartItem[]> {
   }));
 }
 
-// Add ingredient to cart (creates new row or increments existing)
+// Add ingredient to cart (creates new row, increments, or restores soft-deleted)
 export async function addToCart(
   ingredientId: number
 ): Promise<{ success: boolean; error: string | null }> {
-  // Check if item already exists
+  // Check if item already exists (including soft-deleted)
   const { data: existing, error: fetchError } = await supabase
     .from('cart_list')
-    .select('id, quantity')
+    .select('id, quantity, deleted')
     .eq('ingredient_id', ingredientId)
-    .eq('deleted', false)
 
     .maybeSingle();
 
@@ -75,18 +74,31 @@ export async function addToCart(
   }
 
   if (existing) {
-    // Update quantity (increment by 1)
-    const { error: updateError } = await supabase
-      .from('cart_list')
-      .update({ quantity: existing.quantity + 1 })
-      .eq('id', existing.id);
+    if (existing.deleted) {
+      // Restore soft-deleted item: set deleted=false and reset quantity to 1
+      const { error: updateError } = await supabase
+        .from('cart_list')
+        .update({ deleted: false, quantity: 1 })
+        .eq('id', existing.id);
 
-    if (updateError) {
-      console.error('Error updating cart item:', updateError);
-      return { success: false, error: updateError.message };
+      if (updateError) {
+        console.error('Error restoring cart item:', updateError);
+        return { success: false, error: updateError.message };
+      }
+    } else {
+      // Item exists and is active — increment quantity by 1
+      const { error: updateError } = await supabase
+        .from('cart_list')
+        .update({ quantity: existing.quantity + 1 })
+        .eq('id', existing.id);
+
+      if (updateError) {
+        console.error('Error updating cart item:', updateError);
+        return { success: false, error: updateError.message };
+      }
     }
   } else {
-    // Insert new
+    // Insert new row
     const { error: insertError } = await supabase.from('cart_list').insert({
       ingredient_id: ingredientId,
       quantity: 1,
