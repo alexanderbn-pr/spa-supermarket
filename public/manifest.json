@@ -7,12 +7,27 @@
   "background_color": "#ffffff",
   "icons": [
     {
-      "src": "/rebost.png",
+      "src": "/icons/rebost-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/rebost-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/rebost-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/rebost-192x192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/rebost.png",
+      "src": "/icons/rebost-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

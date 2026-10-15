@@ -9,7 +9,7 @@ import "../styles/globals.css";
 export const metadata: Metadata = {
   title: {
     default: "Rebost",
-    template: "%s | Rebost",
+    template: "%s",
   },
   description:
     "Create your recipes and plan your weekly menu. Generate your shopping list and go shopping with it.",

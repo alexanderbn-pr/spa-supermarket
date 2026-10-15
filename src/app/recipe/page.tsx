@@ -7,7 +7,7 @@ import { fetchTypes, fetchDifficulties, fetchMealTypes, fetchHealthyLevels } fro
 import RecipeFiltersBar from './components/RecipeFiltersBar';
 
 export const metadata: Metadata = {
-  title: 'Recipe Collection',
+  title: 'Rebost',
   description: 'Explore our collection of delicious recipes. Find inspiration for your weekly meal planning.',
   robots: {
     index: true,
