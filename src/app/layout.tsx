@@ -2,28 +2,36 @@ import type { Metadata } from "next";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
 import ToastContainer from "@/components/ui/ToastContainer";
-import 'material-icons/iconfont/material-icons.css'
-import 'material-symbols/outlined.css'
+import "material-icons/iconfont/material-icons.css";
+import "material-symbols/outlined.css";
 import "../styles/globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Shop the Menu - Recipe Planning & Shopping List",
-    template: "%s | Shop the Menu",
+    default: "Rebost",
+    template: "%s | Rebost",
   },
-  description: "Create your recipes and plan your weekly menu. Generate your shopping list and go shopping with it.",
-  keywords: ["recipes", "meal planning", "shopping list", "weekly menu", "cooking"],
-  authors: [{ name: "Shop the Menu" }],
+  description:
+    "Create your recipes and plan your weekly menu. Generate your shopping list and go shopping with it.",
+  keywords: [
+    "recipes",
+    "meal planning",
+    "shopping list",
+    "weekly menu",
+    "cooking",
+  ],
+  authors: [{ name: "Rebost" }],
   openGraph: {
-    title: "Shop the Menu - Recipe Planning & Shopping List",
-    description: "Create your recipes and plan your weekly menu. Generate your shopping list and go shopping with it.",
+    title: "Rebost",
+    description:
+      "Create your recipes and plan your weekly menu. Generate your shopping list and go shopping with it.",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Shop the Menu",
-    description: "Create your recipes and plan your weekly menu",
+    title: "Rebost",
+    description: "Create your recipes and plan the menu",
   },
   robots: {
     index: true,
@@ -37,14 +45,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className="h-full antialiased"
-      suppressHydrationWarning
-    >
-      <body className="min-h-full flex flex-col" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+      </head>
+      <body
+        className="min-h-full flex flex-col"
+        style={{
+          backgroundColor: "var(--color-bg)",
+          color: "var(--color-text)",
+        }}
+      >
         <Header />
-          <main className="flex w-full flex-1 p flex-col p-5 bg-zinc-50 font-sans">
+        <main className="flex w-full flex-1 p flex-col p-5 bg-zinc-50 font-sans">
           {children}
         </main>
         <Footer />
